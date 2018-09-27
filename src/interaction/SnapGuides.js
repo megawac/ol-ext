@@ -156,34 +156,40 @@ ol_interaction_SnapGuides.prototype.getGuides = function(features)
 * @param {Array<ol.coordinate>} v the direction vector
 * @return {ol.Feature} feature guide
 */
-ol_interaction_SnapGuides.prototype.addGuide = function(v, ortho) {
-	if (v)
-	{	var map = this.getMap();
+ol_interaction_SnapGuides.prototype.addGuide = function (v, ortho) {
+	if (v) {
+		var map = this.getMap();
 		// Limit extent
-		var extent = map.getView().calculateExtent(map.getSize());
-		extent = ol_extent_buffer(extent, Math.max (1e5+1, (extent[2]-extent[0])*100));
+		var size = map.getSize();
+		var extent = map.getView().calculateExtent(size);
+		console.log(extent);
+
+		const guideLength = Math.max(size[0], size[1]) * 1.5;
+
+		extent = ol_extent_buffer(extent, guideLength);
 		//extent = ol_extent_boundingExtent(extent, this.projExtent_);
-		if (extent[0]<this.projExtent_[0]) extent[0]=this.projExtent_[0];
-		if (extent[1]<this.projExtent_[1]) extent[1]=this.projExtent_[1];
-		if (extent[2]>this.projExtent_[2]) extent[2]=this.projExtent_[2];
-		if (extent[3]>this.projExtent_[3]) extent[3]=this.projExtent_[3];
+		if (extent[0] < this.projExtent_[0]) extent[0] = this.projExtent_[0];
+		if (extent[1] < this.projExtent_[1]) extent[1] = this.projExtent_[1];
+		if (extent[2] > this.projExtent_[2]) extent[2] = this.projExtent_[2];
+		if (extent[3] > this.projExtent_[3]) extent[3] = this.projExtent_[3];
+		console.log(extent, guideLength);
 		// 
 		var dx = v[0][0] - v[1][0];
 		var dy = v[0][1] - v[1][1];
-		var d = 1 / Math.sqrt(dx*dx+dy*dy);
+		var d = 1 / Math.sqrt(dx * dx + dy * dy);
 		var p, g = [];
 		var p0, p1;
-		for (var i= 0; i<1e8; i+=1e5)
-		{	if (ortho) p = [ v[0][0] + dy*d*i, v[0][1] - dx*d*i];
-			else p = [ v[0][0] + dx*d*i, v[0][1] + dy*d*i];
+		for (var i = 0; i < (guideLength * 2); i += guideLength) {
+			if (ortho) p = [v[0][0] + dy * d * i, v[0][1] - dx * d * i];
+			else p = [v[0][0] + dx * d * i, v[0][1] + dy * d * i];
 			if (ol_extent_containsCoordinate(extent, p)) g.push(p);
 			else break;
 		}
 		var f0 = new ol_Feature(new ol_geom_LineString(g));
-		var g=[];
-		for (var i= 0; i>-1e8; i-=1e5)
-		{	if (ortho) p = [ v[0][0] + dy*d*i, v[0][1] - dx*d*i];
-			else p = [ v[0][0] + dx*d*i, v[0][1] + dy*d*i];
+		var g = [];
+		for (var i = 0; i > -(guideLength * 2); i -= guideLength) {
+			if (ortho) p = [v[0][0] + dy * d * i, v[0][1] - dx * d * i];
+			else p = [v[0][0] + dx * d * i, v[0][1] + dy * d * i];
 			if (ol_extent_containsCoordinate(extent, p)) g.push(p);
 			else break;
 		}
